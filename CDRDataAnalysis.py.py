@@ -9,25 +9,19 @@ import dash_core_components as dcc
 import plotly.graph_objects as go  
 import plotly.express as px
 
-# pip install dash-bootstrap-components
 import dash_bootstrap_components as dbc
 import dash_table as dt
 import re
 
-# Global variables
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP]) # [dbc.themes.BOOTSTRAP]
 project_name = None
 
 
-def load_data():
-
-  #the variable inside a function is local by default. 
+def load_data(): 
   call_dataset_name = "Call_data.csv"
   service_dataset_name = "Service_data.csv"
   device_dataset_name = "Device_data.csv"
-  
-  
-  # We use a global keyword for a variable which is inside a function so that it can be modified.
+ 
   global call_data
   call_data = pd.read_csv(call_dataset_name)
   
@@ -43,24 +37,18 @@ def load_data():
   global start_date_list
   temp_list = sorted(call_data['date'].dropna().unique().tolist())
   start_date_list = [{"label": str(i), "value": str(i)}  for i in temp_list ]
-
-  # [{'label': '2019-06-20', 'value': '2019-06-20'} ]
+  
   global end_date_list
   end_date_list = start_date_list
 
-  
-  # [{'label': 'Hourly', 'value': 'Hourly'} ]
   temp_list = ["Hourly", "Daywise", "Weekly"]
   global report_type_list
   report_type_list = [{"label": str(i), "value":str(i)} for i in temp_list ]
  
 def open_browser():
-  # Open the default web browser
   webbrowser.open_new('http://127.0.0.1:8050/')
 
-# Layout of your page
 def create_app_ui():
-    # Create the UI of the Webpage here
     main_layout = html.Div([
     
     html.H1('CDR Analysis with Insights', id='Main_title'),
@@ -143,8 +131,6 @@ def create_card(title, content, color):
     return(card)
 
 def count_devices(data):
-    
-    # Various devices used for VoIP calls
     device_dict = {"Polycom" :0,
     "Windows" : 0,
     "iphone" : 0,
@@ -180,11 +166,7 @@ def count_devices(data):
     final_data["Device"] = device_dict.keys()
     final_data["Count"] = device_dict.values()
     return final_data
-
-
-
-
-# Callback of your page
+   
 @app.callback(
     Output('visualization-object', 'children'),
     [
@@ -224,8 +206,6 @@ def update_app_ui(Tabs, start_date, end_date, group, report_type,device_date,ser
 
     if Tabs == "tab-1":
         
-        # Filter the data as per the selection of the drop downs
-        
         call_analytics_data = call_data[ (call_data["date"]>=start_date) & (call_data["date"]<=end_date) ]
          
         if group  == [] or group is None:
@@ -235,8 +215,7 @@ def update_app_ui(Tabs, start_date, end_date, group, report_type,device_date,ser
          
     
     
-        graph_data = call_analytics_data
-        # Group the data based on the drop down     
+        graph_data = call_analytics_data    
         if report_type == "Hourly":
             graph_data = graph_data.groupby("hourly_range")["Call_Direction"].value_counts().reset_index(name = "count")
             x = "hourly_range"
@@ -257,10 +236,8 @@ def update_app_ui(Tabs, start_date, end_date, group, report_type,device_date,ser
             x = "weekly_range"
             
             content = call_analytics_data["weekly_range"].value_counts().idxmax()
-            title =  "Busiest WeekDay"
+            title =  "Busiest WeekDay
             
-           
-        # Graph Section
         figure = px.area(graph_data, 
                          x = x, 
                          y = "count",
@@ -268,10 +245,7 @@ def update_app_ui(Tabs, start_date, end_date, group, report_type,device_date,ser
                          hover_data=[ "Call_Direction", "count"], 
                          template = "plotly_dark")
         figure.update_traces(mode = "lines+markers")
-      
-      
-      
-        # Card Section
+     
         total_calls = call_analytics_data["Call_Direction"].count()
         card_1 = create_card("Total Calls",total_calls, "success")
           
@@ -296,12 +270,6 @@ def update_app_ui(Tabs, start_date, end_date, group, report_type,device_date,ser
         graphRow2 = dbc.Row([dbc.Col(id='card5', children=[card_5], md=3), dbc.Col(id='card6', children=[card_6], md=3)])
      
         cardDiv = html.Div([graphRow0,html.Br(), graphRow1,html.Br(), graphRow2])
-        
-    
-    
-    
-    
-        # Data Table Section
     
         datatable_data = call_analytics_data.groupby(["Group", "UserID", "UserDeviceType"])["Call_Direction"].value_counts().unstack(fill_value = 0).reset_index()
         if call_analytics_data["Missed Calls"][call_analytics_data["Missed Calls"]==19].count()!=0:
@@ -380,9 +348,6 @@ def update_groups(start_date, end_date):
     group_list = [{"label":m, "value":m} for m in group_list]
     return group_list
 
-
-
-# Flow of your Project
 def main():
     load_data()
     
@@ -392,9 +357,7 @@ def main():
     project_name = "CDR Analysis with Insights"
     app.layout = create_app_ui()
     app.title = project_name
-
     
-    # go to https://www.favicon.cc/ and download the ico file and store in assets directory 
     app.run_server() # debug=True
     
     
